@@ -21,4 +21,8 @@ http://docs.oracle.com/javase/tutorial/networking/sockets/
 Arduino Yun basics
 https://www.arduino.cc/en/Guide/ArduinoYun
 
+Twillo (text service)
+https://www.twilio.com/docs/quickstart/php/sms/sending-via-rest
+
+
 
