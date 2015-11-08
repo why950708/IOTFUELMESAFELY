@@ -1,1 +1,100 @@
 
+
+//This is a simple code to connect Hongyi's code and GSM receive code
+//GSM receive code course and tutorial: https://www.arduino.cc/en/Tutorial/GSMExamplesReceiveSMS
+//There is no message check in this code. And, it will be finished in the another code
+
+//Cheng Added
+#include <GSM.h>
+
+///Define the PIN for your SIM. If your SIM has no PIN, you can leave it blank : 
+#define PINNUMBER ""
+GSM gsmAccess;
+GSM_SMS sms;
+///* Here should be declared/replaced by Twillo sender's number
+char remoteNumber[20]; 
+
+//Hongyi Wrote
+int motorPin = 3;
+ 
+void setup() 
+{ 
+
+  // Hongyi Wrote
+  pinMode(motorPin, OUTPUT);
+  Serial.begin(9600);
+  while (! Serial);
+  Serial.println("Speed 0 to 255");
+
+  //Cheng Added, as Hongyi wrote Serial.begin(9600), here it's not needed to repeat
+  ///Indicate this sketch started
+  Serial.println("SMS Messages Receiver");
+  
+  ///notConnected: a local variable to trach connection status, we use this to keep the sketch from starting until the SIM is connected to the network
+  boolean notConnected = true;
+
+  ///while() loop, you can continually check the status of the connection
+  while(notConnected)
+  {
+    ///Connect to the network by calling gsmAccess.begin()
+    if(gsmAccess.begin(PINNUMBER)==GSM_READY)
+      ///Once connected, flag notConnected variable change to false
+      ///Once connected, the remainder of setup will run.
+      notConnected = false;
+    else
+    {
+      Serial.println("Not connected");
+      delay(1000);
+    }
+  }
+
+  ///Finish setup
+  Serial.println("GSM initialized.");
+  Serial.println("Waiting for messages");
+
+  
+} 
+ 
+ 
+void loop() 
+{ 
+
+    // Cheng Added
+    /// c: temporarily hold characters from any SMS received
+    ///* If we only want to check the message we want, such as "DOIT", we will change c into an array
+    char c;
+    /// sms.available(): check for the presence of any messages on the SIM
+    if (sms.available())
+    {
+        ///If a SMS is available, retrieve the remote sender's number by calling sms.remoteNumber(remoteNumber, 20)
+        ///Here, ideally, should be the sender's number from Twillio
+        Serial.println("Message received from:");
+        sms.remoteNumber(remoteNumber, 20);
+        Serial.println(remoteNumber);
+
+        ///The code below can remove any letter from the SIM, by replacing # with specific index number
+        if(sms.peek()=='#')
+        {
+          Serial.println("Discarded SMS");
+          sms.flush();
+        }
+        ///Read message from SIM one char by one char
+        ///* Here check the lib to find a method to read all message received on SIM
+        while(c=sms.read())
+          Serial.print(c);
+        ///Indicate the message is complete and remove it from memory with sms.flush().
+        Serial.println("\nEND OF MESSAGE");    
+        sms.flush();
+        Serial.println("MESSAGE DELETED");
+
+         // Hongyi Wrote
+        int speed =255;
+        if (speed >= 0 && speed <= 255)
+        {
+          analogWrite(motorPin, speed);
+        }
+     }
+     
+    //Cheng Added
+    delay(1000);  
+ }
